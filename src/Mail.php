@@ -13,6 +13,11 @@ use Sunra\PhpSimple\HtmlDomParser as SunraParser;
 class Mail
 {
     /**
+     * @var string $id
+     */
+    protected $id;
+
+    /**
      * @var bool $read
      */
     protected $read;
@@ -54,6 +59,11 @@ class Mail
     protected $plain_text;
 
     /**
+     * @var int $time_ago
+     */
+    protected $time_ago;
+
+    /**
      * Mail constructor.
      * @param object $mail
      */
@@ -62,7 +72,19 @@ class Mail
         $this->setSubject($mail->subject)
             ->fromSender($mail->from)
             ->setDateTime($mail->datetime)
-            ->setHumanSupportDateTime($mail->datetime2);
+            ->setHumanSupportDateTime($mail->datetime2)
+            ->setId($mail->mail_id)
+            ->setTimeAgo($mail->timeago);
+    }
+
+    /**
+     * @param int $time_ago
+     * @return Mail
+     */
+    public function setTimeAgo(int $time_ago): Mail
+    {
+        $this->time_ago = $time_ago;
+        return $this;
     }
 
     /**
@@ -102,6 +124,24 @@ class Mail
     public function setSubject(string $subject): Mail
     {
         $this->subject = $subject;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param string $id
+     * @return Mail
+     */
+    public function setId(string $id): Mail
+    {
+        $this->id = $id;
         return $this;
     }
 
