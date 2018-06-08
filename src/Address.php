@@ -61,35 +61,6 @@ class Address
     }
 
     /**
-     * @param int $index
-     * @return Mail
-     */
-    public function getMail(int $index): Mail
-    {
-        return $this->mails[$index];
-    }
-
-    /**
-     * @param string $permanent_url
-     * @return Address
-     */
-    public function setPermanentUrl(string $permanent_url): Address
-    {
-        $this->permanent_url = $permanent_url;
-        return $this;
-    }
-
-    /**
-     * @param string $permanent_key
-     * @return Address
-     */
-    public function setPermanentKey(string $permanent_key): Address
-    {
-        $this->permanent_key = $permanent_key;
-        return $this;
-    }
-
-    /**
      * @param int $left_time
      * @return Address
      */
@@ -165,20 +136,117 @@ class Address
     }
 
     /**
-     * @param array $mails
-     * @return Address
-     */
-    public function setMails(array $mails): Address
-    {
-        $this->mails = $mails;
-        return $this;
-    }
-
-    /**
      * @return array
      */
     public function getMails(): array
     {
         return $this->mails;
+    }
+
+    /**
+     * @param array $mails
+     * @return Address
+     */
+    public function setMails(array $mails): Address
+    {
+        $this->mails = [];
+        foreach ($mails as $mail) {
+            $this->mails[] = new Mail($mail);
+        }
+        return $this;
+    }
+
+    /**
+     * @param string $file
+     */
+    public function save(string $file): void
+    {
+        $fp = fopen($file, 'w');
+        $data = json_encode([
+            'address' => $this->getAddress(),
+            'user' => $this->user,
+            'host' => $this->host,
+            'key' => $this->recovery_key,
+            'created_at' => $this->created_at,
+            'permanent_key' => $this->permanent_key,
+            'permanent_url' => $this->permanent_url,
+        ]);
+        fwrite($fp, $data);
+        fclose($fp);
+    }
+
+    /**
+     * @return Address
+     */
+    public function update(): Address
+    {
+        TenMinutesMail::$curl->get(TenMinutesMail::ADDRESS_API_URL);
+        $mailData = json_decode(TenMinutesMail::$curl->response);
+        $this->setMails($mailData->mail_list);
+        $this->setPermanentKey($mailData->permalink->key);
+        $this->setPermanentUrl($mailData->permalink->url);
+    }
+
+    /**
+     * @param string $permanent_key
+     * @return Address
+     */
+    public function setPermanentKey(string $permanent_key): Address
+    {
+        $this->permanent_key = $permanent_key;
+        return $this;
+    }
+
+    /**
+     * @param string $permanent_url
+     * @return Address
+     */
+    public function setPermanentUrl(string $permanent_url): Address
+    {
+        $this->permanent_url = $permanent_url;
+        return $this;
+    }
+
+    /**
+     * @param int $index
+     * @return Mail
+     */
+    public function read(int $index): Mail
+    {
+        $mail = $this->getMail($index);
+        $url = $this->getMailUrl($mail->getId());
+        TenMinutesMail::$curl->get($url);
+        $mailBody = TenMinutesMail::getMailBody();
+        return $mail->setBody($mailBody['html'])
+            ->setPlainText($mailBody['plain_text']);
+    }
+
+    /**
+     * @param int $index
+     * @return Mail
+     */
+    public function getMail(int $index): Mail
+    {
+        return $this->mails[$index];
+    }
+
+    /**
+     * @param string $id
+     * @return string
+     */
+    public function getMailUrl(string $id)
+    {
+        return sprintf(TenMinutesMail::READ_MAIL_API_URL, $id);
+    }
+
+    /**
+     * Recover address
+     */
+    public function recover(): void
+    {
+        TenMinutesMail::$curl->post($this->permanent_url, [
+            'key' => $this->permanent_key
+        ]);
+        $this->update();
     }
 }

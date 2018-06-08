@@ -10,6 +10,7 @@ namespace TenMinutesMail;
 
 use ErrorException;
 use Curl\Curl;
+use Sunra\PhpSimple\HtmlDomParser as SunraParser;
 
 class TenMinutesMail
 {
@@ -22,10 +23,17 @@ class TenMinutesMail
      * Create new email address
      */
     const NEW_ADDRESS_API_URL = 'https://10minutemail.net/address.api.php';
+
+    /**
+     * Read an email
+     */
+    const READ_MAIL_API_URL = 'https://10minutemail.net/readmail.html?mid=%s';
+
     /**
      * @var Curl $curl
      */
-    public static $curl;
+    public static $curl = NULL;
+
     /**
      * @var string $cookie_file
      */
@@ -59,12 +67,28 @@ class TenMinutesMail
             self::setCookieFile($cookie_file);
         }
 
-        try {
-            self::$curl = new Curl();
-            self::$curl->setOpt(CURLOPT_COOKIEFILE, self::$cookie_file);
-            self::$curl->setOpt(CURLOPT_COOKIEJAR, self::$cookie_file);
-        } catch (ErrorException $exception) {
-            die($exception->getMessage());
+        if (self::$curl === NULL) {
+            try {
+                self::$curl = new Curl();
+
+            } catch (ErrorException $exception) {
+                die($exception->getMessage());
+            }
         }
+        self::$curl->setOpt(CURLOPT_COOKIEFILE, self::$cookie_file);
+        self::$curl->setOpt(CURLOPT_COOKIEJAR, self::$cookie_file);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getMailBody(): array
+    {
+        $html = self::$curl->response;
+        $mailBody = SunraParser::str_get_html($html)->find('.mailinhtml', 0);
+        return [
+            'html' => $mailBody->outertext(),
+            'plain_text' => $mailBody->plaintext
+        ];
     }
 }

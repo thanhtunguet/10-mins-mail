@@ -37,4 +37,21 @@ class MailFactory
             ->setLeftTime($mailData->mail_left_time)
             ->setMails($mailData->mail_list);
     }
+
+    /**
+     * @param string $json
+     * @return Address
+     */
+    public static function fromJSON(string $json): Address
+    {
+        $mailData = json_decode($json);
+        $address = new Address();
+        $address->setPermanentKey($mailData->permanent_key)
+            ->setPermanentUrl($mailData->permanent_url)
+            ->setUser($mailData->user)
+            ->setHost($mailData->host)
+            ->setRecoveryKey($mailData->key)
+            ->setCreatedTime($mailData->created_at);
+        return $address;
+    }
 }
