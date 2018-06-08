@@ -1,0 +1,24 @@
+{
+  "name": "uet/10-mins-mail",
+  "description": "10 Minutes Mail SDK",
+  "type": "library",
+  "require": {
+    "php": ">=7.2.0",
+    "curl/curl": "^1.9",
+    "sunra/php-simple-html-dom-parser": "^1.5"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Thanh Tùng",
+      "email": "thanhtung.uet@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "TenMinutesMail\\": "src/"
+    }
+  }
+}
